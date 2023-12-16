@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userSchema = new mongoose.Schema({
+const patientSchema = new mongoose.Schema({
   first_name: { type: String, default: null },
   last_name: { type: String, default: null },
   email_id: { type: String, unique: true },
@@ -8,4 +8,4 @@ const userSchema = new mongoose.Schema({
   token: { type: String },
 });
 
-module.exports = mongoose.model("user", userSchema, "user");
+module.exports = mongoose.model("patient", patientSchema, "patient");
