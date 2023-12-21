@@ -5,6 +5,7 @@ const { encryptPassword, decryptPassword } = require("../utils/utils");
 const {
   badRequestResponse,
   createdSuccessResponse,
+  notFoundResponse,
   successResponse,
 } = require("../utils/response");
 const ROLES = require("../constants");
@@ -30,16 +31,18 @@ exports.signup = async (req, res) => {
     email_id,
     password: ecryptedPassword,
   });
-  console.log(patient);
 
   const token = await jwt.sign(
-    { user_id: patient.id, email_id },
+    { user_id: patient._id, email_id },
     process.env.TOKEN_KEY
   );
 
-  patient.token = token;
+  const responseData = { accessToken: token };
 
-  return createdSuccessResponse(res, "User created successfully", patient);
+  return createdSuccessResponse(res, "User created successfully", {
+    ...JSON.parse(JSON.stringify(patient)),
+    token,
+  });
 };
 
 exports.signupHospital = async (req, res) => {
@@ -61,16 +64,15 @@ exports.signupHospital = async (req, res) => {
     email_id,
     password: ecryptedPassword,
   });
-  console.log(patient);
-
   const token = await jwt.sign(
-    { user_id: patient.id, email_id },
+    { user_id: hospital._id, email_id },
     process.env.TOKEN_KEY
   );
 
-  hospital.token = token;
-
-  return createdSuccessResponse(res, "Hospital created successfully", hospital);
+  return createdSuccessResponse(res, "Hospital created successfully", {
+    ...JSON.parse(JSON.stringify(hospital)),
+    token,
+  });
 };
 
 exports.signupDoctor = async (req, res) => {
@@ -106,13 +108,16 @@ exports.signupDoctor = async (req, res) => {
     password: ecryptedPassword,
     specialization,
     time_slot,
+    hospitals: [],
   });
   const token = await jwt.sign(
-    { user_id: doctor.id, email_id },
+    { user_id: doctor._id, email_id },
     process.env.TOKEN_KEY
   );
-  doctor.token = token;
-  return createdSuccessResponse(res, "Doctor created successfully", doctor);
+  return createdSuccessResponse(res, "Doctor created successfully", {
+    ...JSON.parse(JSON.stringify(doctor)),
+    token,
+  });
 };
 
 exports.login = async (req, res) => {
@@ -127,14 +132,16 @@ exports.login = async (req, res) => {
     if (isMatched) {
       const token = await jwt.sign(
         {
-          user_id: patient.id,
+          user_id: patient._id,
           email_id,
         },
         process.env.TOKEN_KEY
       );
-      patient.token = token;
-      const responseData = { accessToken: patient.token };
-      return successResponse(res, "Logged in successfully", responseData);
+      const responseData = { accessToken: token };
+      return successResponse(res, "Logged in successfully", {
+        ...JSON.parse(JSON.stringify(patient)),
+        token,
+      });
     }
     return unauthorizedResponse(res, "Incorrect credentials");
   }
@@ -153,14 +160,43 @@ exports.loginDoctor = async (req, res) => {
     if (isMatched) {
       const token = await jwt.sign(
         {
-          user_id: doctor.id,
+          user_id: doctor._id,
           email_id,
         },
         process.env.TOKEN_KEY
       );
-      doctor.token = token;
-      const responseData = { accessToken: doctor.token };
-      return successResponse(res, "Logged in successfully", responseData);
+      const responseData = { accessToken: token };
+      return successResponse(res, "Logged in successfully", {
+        ...JSON.parse(JSON.stringify(doctor)),
+        token,
+      });
+    }
+    return unauthorizedResponse(res, "Incorrect credentials");
+  }
+  return notFoundResponse(res, "User not found");
+};
+
+exports.loginHospital = async (req, res) => {
+  const { email_id, password } = req.body;
+  if (!(email_id && password)) {
+    return badRequestResponse(res, "Please enter all fields");
+  }
+  let hospital = await Hospital.findOne({ email_id: email_id });
+
+  if (hospital) {
+    const isMatched = await decryptPassword(password, hospital.password);
+    if (isMatched) {
+      const token = await jwt.sign(
+        {
+          user_id: hospital._id,
+          email_id,
+        },
+        process.env.TOKEN_KEY
+      );
+      return successResponse(res, "Logged in successfully", {
+        ...JSON.parse(JSON.stringify(hospital)),
+        token,
+      });
     }
     return unauthorizedResponse(res, "Incorrect credentials");
   }

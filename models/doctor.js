@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
+const hospital = require("./hospital");
 
 const timeSlotSchema = new mongoose.Schema({
   startTime: { type: String },
@@ -11,7 +13,12 @@ const doctorSchema = new mongoose.Schema({
   password: { type: String },
   specialization: { type: String, required: true },
   time_slot: { type: timeSlotSchema },
-  token: { type: String },
+  hospitals: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "hospital",
+    },
+  ],
 });
 
 module.exports = mongoose.model("doctor", doctorSchema, "doctor");
