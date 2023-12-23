@@ -46,8 +46,8 @@ exports.signup = async (req, res) => {
 };
 
 exports.signupHospital = async (req, res) => {
-  const { email_id, password, hospitalName } = req.body;
-
+  const { email_id, password, hospitalName, location } = req.body;
+  console.log(location);
   if (!(email_id && password && hospitalName)) {
     return badRequestResponse(res, "Incomplete Details Entered");
   }
@@ -63,6 +63,7 @@ exports.signupHospital = async (req, res) => {
     hospitalName,
     email_id,
     password: ecryptedPassword,
+    location,
   });
   const token = await jwt.sign(
     { user_id: hospital._id, email_id },

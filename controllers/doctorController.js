@@ -1,4 +1,5 @@
 const Doctor = require("../models/doctor");
+const Hospital = require("../models/hospital");
 const {
   badRequestResponse,
   successResponse,
@@ -8,7 +9,6 @@ const {
 exports.fetchAllDoctors = async (req, res) => {
   try {
     const allDoctors = await Doctor.find();
-    console.log(allDoctors);
     return successResponse(res, "Successfully fetched", allDoctors);
   } catch (err) {
     console.log(err);
@@ -47,5 +47,31 @@ exports.fetchDoctorDetails = async (req, res) => {
   } catch (err) {
     console.log(err);
     return badRequestResponse(res, "Invalid Request");
+  }
+};
+
+exports.applyToHospital = async (req, res) => {
+  try {
+    const hospital_id = req.param("hospital_id");
+    const doctor_id = req.user.user_id;
+
+    if (!hospital_id) {
+      return badRequestResponse(res, "Invalid Request");
+    }
+
+    const updatedHospital = await Hospital.findOneAndUpdate(
+      { _id: hospital_id },
+      { $push: { applied_doctors: doctor_id } }
+    );
+    const updatedDoctor = await Doctor.findOneAndUpdate(
+      { _id: doctor_id },
+      {
+        $push: { applied_to_hospitals: hospital_id },
+      }
+    );
+
+    return successResponse(res, "Successfully Applied");
+  } catch (err) {
+    console.log(err);
   }
 };

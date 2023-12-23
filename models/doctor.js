@@ -19,6 +19,11 @@ const doctorSchema = new mongoose.Schema({
       ref: "hospital",
     },
   ],
+  applied_to_hospitals: [{ type: Schema.Types.ObjectId, ref: "hospital" }],
+  // location: {
+  //   type: { type: String, enum: ["Point"] },
+  //   coordinates: { type: [Number], required: true },
+  // },
 });
 
 module.exports = mongoose.model("doctor", doctorSchema, "doctor");
