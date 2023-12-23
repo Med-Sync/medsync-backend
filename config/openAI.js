@@ -21,7 +21,7 @@ const test = async () => {
     presence_penalty: 0,
   });
 
-  console.log(response.choices[0].message);
+  console.log(response.choices[0].message.content);
 };
 
 test();
